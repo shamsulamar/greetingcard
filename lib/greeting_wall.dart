@@ -84,7 +84,7 @@ String _withCacheBust(String url) {
 
 Future<List<PublicNote>> _loadAllNotes() async {
   Object? lastError;
-  for (final url in [_notesRawUrl, _notesApiUrl, _siteNotesUrl()]) {
+  for (final url in [_notesApiUrl, _notesRawUrl, _siteNotesUrl()]) {
     try {
       final raw = await readUrl(_withCacheBust(url));
       return _parseNotes(_decodeNotesDocument(raw));
