@@ -10,13 +10,7 @@ The old URL `https://shamsulamar.github.io/greatingcard/` redirects here so exis
 
 The wall shows greeting **text only**. Sender and recipient emails stay private. Stats reads `notes.json`. A GitHub Action appends a new note to that file after someone sends a greeting.
 
-To let the live site queue a note (the write token never has to live in git):
-
-1. Create a fine-grained personal access token with access only to this repository and **Actions: Read and write**.
-2. Add it as the repository secret `NOTE_DISPATCH_TOKEN`.
-3. Redeploy from `main` so the GitHub Action build can pass that secret into the web app.
-
-The Action uses `GITHUB_TOKEN` to commit `notes.json`. That commit token is not in the website source.
+The live site cannot ship a GitHub token in its JavaScript (GitHub push protection blocks that). It queues the public greeting text, then the **Append greeting note** Action copies it into `notes.json`. The Action uses `GITHUB_TOKEN` to commit. That commit token is not in the website source.
 
 ## Local demo
 

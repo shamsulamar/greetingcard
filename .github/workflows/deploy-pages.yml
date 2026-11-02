@@ -25,7 +25,7 @@ jobs:
         with:
           channel: stable
       - run: flutter pub get
-      - run: flutter build web --release --base-href /greetingcard/ --dart-define=NOTE_DISPATCH_TOKEN=${{ secrets.NOTE_DISPATCH_TOKEN }}
+      - run: flutter build web --release --base-href /greetingcard/
       - name: Keep the live notes file
         run: |
           mkdir -p build/web

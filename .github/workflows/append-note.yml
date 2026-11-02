@@ -3,15 +3,17 @@ name: Append greeting note
 on:
   repository_dispatch:
     types: [append_note]
+  schedule:
+    - cron: "* * * * *"
   workflow_dispatch:
     inputs:
       text:
         description: Public greeting text
-        required: true
+        required: false
         type: string
       day:
         description: Malaysia calendar day yyyy-mm-dd
-        required: true
+        required: false
         type: string
 
 concurrency:
@@ -30,13 +32,19 @@ jobs:
         with:
           ref: gh-pages
           path: pages
-      - name: Append note
+      - name: Append dispatched note
         env:
-          NOTE_TEXT: ${{ github.event.client_payload.t || github.event.inputs.text }}
-          NOTE_DAY: ${{ github.event.client_payload.d || github.event.inputs.day }}
+          NOTE_TEXT: ${{ github.event.client_payload.t || github.event.inputs.text || '' }}
+          NOTE_DAY: ${{ github.event.client_payload.d || github.event.inputs.day || '' }}
         run: |
           NOTES_PATH=web/notes.json python3 .github/scripts/append_note.py
           NOTES_PATH=pages/notes.json python3 .github/scripts/append_note.py
+      - name: Ingest public inbox
+        env:
+          NOTE_INBOX_TOPIC: greetingcard-notes-shamsulamar
+        run: |
+          NOTES_PATH=web/notes.json python3 .github/scripts/ingest_inbox.py
+          NOTES_PATH=pages/notes.json python3 .github/scripts/ingest_inbox.py
       - name: Publish notes.json on GitHub Pages
         run: |
           git -C pages config user.name "github-actions[bot]"

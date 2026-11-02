@@ -53,11 +53,11 @@
     // returning success without persisting notes.
     window.greetingWallWrite = async function (url, body, token) {
       var headers = {
-        'Accept': 'application/vnd.github+json',
-        'Content-Type': 'application/json',
-        'X-GitHub-Api-Version': '2022-11-28'
+        'Content-Type': 'application/json'
       };
       if (token) {
+        headers.Accept = 'application/vnd.github+json';
+        headers['X-GitHub-Api-Version'] = '2022-11-28';
         headers.Authorization = 'Bearer ' + token;
       }
       var response = await fetch(url, {
