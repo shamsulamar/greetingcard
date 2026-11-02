@@ -1,0 +1,50 @@
+name: Drain greeting inbox
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "10 */4 * * *"
+
+concurrency:
+  group: drain-greeting-inbox
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  drain:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: pages
+      - name: Drain ntfy inbox
+        env:
+          NOTE_INBOX_TOPIC: greetingcard-notes-shamsulamar
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git -C pages config user.name "github-actions[bot]"
+          git -C pages config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          end=$((SECONDS + 33000))
+          while [ $SECONDS -lt $end ]; do
+            NOTES_PATH=web/notes.json python3 .github/scripts/ingest_inbox.py
+            NOTES_PATH=pages/notes.json python3 .github/scripts/ingest_inbox.py
+            git -C pages add notes.json
+            if ! git -C pages diff --cached --quiet; then
+              git -C pages commit -m "Add a public greeting to notes.json."
+              git -C pages pull --rebase origin gh-pages
+              git -C pages push origin HEAD:gh-pages
+            fi
+            git add web/notes.json
+            if ! git diff --cached --quiet; then
+              git commit -m "Add a public greeting to notes.json."
+              git pull --rebase origin main
+              git push origin HEAD:main
+            fi
+            sleep 8
+          done

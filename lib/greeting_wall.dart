@@ -10,7 +10,8 @@ const _notesRawUrl =
 const _notesApiUrl =
     'https://api.github.com/repos/shamsulamar/greetingcard/contents/notes.json?ref=gh-pages';
 const _dispatchUrl =
-    'https://api.github.com/repos/shamsulamar/greetingcard/dispatches';
+    'https://api.github.com/repos/shamsulamar/greetingcard/actions/workflows/append-note.yml/dispatches';
+const _inboxUrl = 'https://ntfy.sh/greetingcard-notes-shamsulamar';
 const _maxNoteLength = 160;
 const _maxNotesPerDay = 80;
 const _sampleNotes = {
@@ -119,19 +120,28 @@ Future<void> publishPublicNote(String message) async {
     return;
   }
 
-  if (_dispatchToken.isEmpty) {
-    throw StateError('NOTE_DISPATCH_TOKEN is not configured');
+  var queued = false;
+  if (_dispatchToken.isNotEmpty) {
+    try {
+      final status = await writeUrl(
+        _dispatchUrl,
+        jsonEncode({
+          'ref': 'main',
+          'inputs': {'text': clipped, 'day': day},
+        }),
+        token: _dispatchToken,
+      );
+      queued = status == 204 || (status >= 200 && status < 300);
+    } catch (_) {}
   }
-  final status = await writeUrl(
-    _dispatchUrl,
-    jsonEncode({
-      'event_type': 'append_note',
-      'client_payload': {'t': clipped, 'd': day},
-    }),
-    token: _dispatchToken,
-  );
-  if (status != 204 && (status < 200 || status >= 300)) {
-    throw StateError('Could not queue public note ($status)');
+  if (!queued) {
+    final status = await writeUrl(
+      _inboxUrl,
+      jsonEncode({'t': clipped, 'd': day}),
+    );
+    if (status < 200 || status >= 300) {
+      throw StateError('Could not queue public note ($status)');
+    }
   }
 
   for (var attempt = 0; attempt < 20; attempt++) {

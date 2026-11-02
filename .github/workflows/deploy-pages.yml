@@ -42,8 +42,9 @@ jobs:
             cp web/notes.json build/web/notes.json
           fi
           python3 - <<'PY'
+          import os
           from pathlib import Path
-          stamp = Path('.git/HEAD').read_text().strip()[-7:]
+          stamp = (os.environ.get('GITHUB_SHA') or '')[:7] or 'build'
           bootstrap = Path('build/web/flutter_bootstrap.js')
           text = bootstrap.read_text()
           text = text.replace('"main.dart.js"', f'"main.dart.js?v={stamp}"')

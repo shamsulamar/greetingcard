@@ -4,7 +4,7 @@ on:
   repository_dispatch:
     types: [append_note]
   schedule:
-    - cron: "* * * * *"
+    - cron: "*/5 * * * *"
   workflow_dispatch:
     inputs:
       text:
