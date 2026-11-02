@@ -10,7 +10,7 @@ The old URL `https://shamsulamar.github.io/greatingcard/` redirects here so exis
 
 The wall shows greeting **text only**. Sender and recipient emails stay private. Stats reads `notes.json`. A GitHub Action appends a new note to that file after someone sends a greeting.
 
-The live site cannot ship a GitHub token in its JavaScript (GitHub push protection blocks that). It queues the public greeting text, then the **Append greeting note** Action copies it into `notes.json`. The Action uses `GITHUB_TOKEN` to commit. That commit token is not in the website source.
+The live site queues a public note by triggering the **Append greeting note** Action. The write token is a GitHub secret injected only at Pages build time; it is not committed. The Action uses `GITHUB_TOKEN` to update `notes.json`.
 
 ## Local demo
 

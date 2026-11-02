@@ -3,10 +3,14 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - "web/notes.json"
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
+  pages: write
+  id-token: write
 
 concurrency:
   group: pages-deploy
@@ -15,6 +19,9 @@ concurrency:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/checkout@v4
@@ -25,7 +32,7 @@ jobs:
         with:
           channel: stable
       - run: flutter pub get
-      - run: flutter build web --release --base-href /greetingcard/
+      - run: flutter build web --release --base-href /greetingcard/ --dart-define=NOTE_DISPATCH_TOKEN=${{ secrets.NOTE_DISPATCH_TOKEN }}
       - name: Keep the live notes file
         run: |
           mkdir -p build/web
@@ -42,12 +49,14 @@ jobs:
           text = text.replace('"main.dart.js"', f'"main.dart.js?v={stamp}"')
           bootstrap.write_text(text)
           index = Path('build/web/index.html')
-          index.write_text(index.read_text().replace('flutter_bootstrap.js"', f'flutter_bootstrap.js?v={stamp}"'))
+          html = index.read_text()
+          html = html.replace('flutter_bootstrap.js?v=notes1"', f'flutter_bootstrap.js?v={stamp}"')
+          html = html.replace('flutter_bootstrap.js"', f'flutter_bootstrap.js?v={stamp}"')
+          index.write_text(html)
           PY
-      - uses: peaceiris/actions-gh-pages@v4
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: build/web
-          publish_branch: gh-pages
-          force_orphan: true
-          keep_files: false
+          path: build/web
+      - id: deployment
+        uses: actions/deploy-pages@v4

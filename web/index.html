@@ -51,6 +51,14 @@
 
     // Native fetch, not Flutter JS-interop RequestInit. PUT from Dart was
     // returning success without persisting notes.
+    window.greetingWallRead = async function (url) {
+      var response = await fetch(url, { cache: 'no-store' });
+      if (response.status < 200 || response.status >= 300) {
+        throw new Error('GET ' + response.status);
+      }
+      return await response.text();
+    };
+
     window.greetingWallWrite = async function (url, body, token) {
       var headers = {
         'Content-Type': 'application/json'

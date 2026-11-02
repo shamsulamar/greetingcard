@@ -1,6 +1,7 @@
 import 'dart:js_interop';
 
-import 'package:web/web.dart';
+@JS('greetingWallRead')
+external JSPromise<JSString> _greetingWallRead(JSString url);
 
 @JS('greetingWallWrite')
 external JSPromise<JSAny?> _greetingWallWrite(
@@ -10,11 +11,7 @@ external JSPromise<JSAny?> _greetingWallWrite(
 );
 
 Future<String> readUrl(String url) async {
-  final response = await window.fetch(url.toJS).toDart;
-  if (response.status < 200 || response.status >= 300) {
-    throw StateError('GET ${response.status}');
-  }
-  return (await response.text().toDart).toDart;
+  return (await _greetingWallRead(url.toJS).toDart).toDart;
 }
 
 Future<int> writeUrl(

@@ -5,11 +5,12 @@ import 'send_counter.dart';
 import 'wall_client.dart' if (dart.library.js_interop) 'wall_client_web.dart';
 
 const _notesFile = 'notes.json';
+const _notesRawUrl =
+    'https://raw.githubusercontent.com/shamsulamar/greetingcard/gh-pages/notes.json';
 const _notesApiUrl =
     'https://api.github.com/repos/shamsulamar/greetingcard/contents/notes.json?ref=gh-pages';
 const _dispatchUrl =
     'https://api.github.com/repos/shamsulamar/greetingcard/dispatches';
-const _inboxUrl = 'https://ntfy.sh/greetingcard-notes-shamsulamar';
 const _maxNoteLength = 160;
 const _maxNotesPerDay = 80;
 const _sampleNotes = {
@@ -75,11 +76,16 @@ String _siteNotesUrl() {
   return '$base$_notesFile';
 }
 
+String _withCacheBust(String url) {
+  final sep = url.contains('?') ? '&' : '?';
+  return '$url$sep${DateTime.now().millisecondsSinceEpoch}';
+}
+
 Future<List<PublicNote>> _loadAllNotes() async {
   Object? lastError;
-  for (final url in [_notesApiUrl, _siteNotesUrl()]) {
+  for (final url in [_notesRawUrl, _notesApiUrl, _siteNotesUrl()]) {
     try {
-      final raw = await readUrl(url);
+      final raw = await readUrl(_withCacheBust(url));
       return _parseNotes(_decodeNotesDocument(raw));
     } catch (error) {
       lastError = error;
@@ -113,28 +119,23 @@ Future<void> publishPublicNote(String message) async {
     return;
   }
 
-  final int status;
-  if (_dispatchToken.isNotEmpty) {
-    status = await writeUrl(
-      _dispatchUrl,
-      jsonEncode({
-        'event_type': 'append_note',
-        'client_payload': {'t': clipped, 'd': day},
-      }),
-      token: _dispatchToken,
-    );
-  } else {
-    status = await writeUrl(
-      _inboxUrl,
-      jsonEncode({'t': clipped, 'd': day}),
-    );
+  if (_dispatchToken.isEmpty) {
+    throw StateError('NOTE_DISPATCH_TOKEN is not configured');
   }
+  final status = await writeUrl(
+    _dispatchUrl,
+    jsonEncode({
+      'event_type': 'append_note',
+      'client_payload': {'t': clipped, 'd': day},
+    }),
+    token: _dispatchToken,
+  );
   if (status != 204 && (status < 200 || status >= 300)) {
     throw StateError('Could not queue public note ($status)');
   }
 
-  for (var attempt = 0; attempt < 24; attempt++) {
-    await Future<void>.delayed(const Duration(seconds: 5));
+  for (var attempt = 0; attempt < 20; attempt++) {
+    await Future<void>.delayed(const Duration(seconds: 2));
     final saved = await todaysPublicNotes();
     if (saved.any((note) => note.text == clipped)) {
       return;
