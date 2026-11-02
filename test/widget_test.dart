@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:greatingcard/greeting.dart';
-import 'package:greatingcard/main.dart';
+import 'package:greetingcard/greeting.dart';
+import 'package:greetingcard/main.dart';
 
 void main() {
   testWidgets('Compose form is shown', (WidgetTester tester) async {
@@ -33,7 +33,7 @@ void main() {
     await tester.tap(find.text('Send greeting'));
     await tester.pumpAndSettle();
 
-    expect(find.textContaining('email is not sent'), findsOneWidget);
+    expect(find.textContaining('Email is not set up yet'), findsOneWidget);
     expect(find.textContaining('friend@example.com'), findsWidgets);
 
     await tester.tap(find.text('Preview recipient view'));
@@ -45,6 +45,15 @@ void main() {
 
     expect(find.text('Happy birthday!'), findsOneWidget);
     expect(find.text('From sender@example.com'), findsOneWidget);
+  });
+
+  testWidgets('Stats page shows today count', (WidgetTester tester) async {
+    await tester.pumpWidget(const GreetingCardApp());
+    Navigator.of(tester.element(find.text('Send greeting'))).pushNamed('/stats');
+    await tester.pumpAndSettle();
+
+    expect(find.text('Greetings sent today'), findsOneWidget);
+    expect(find.text('0'), findsOneWidget);
   });
 
   test('payload round-trips greeting data', () {

@@ -1,4 +1,4 @@
-package com.example.greatingcard
+package com.example.greetingcard
 
 import io.flutter.embedding.android.FlutterActivity
 

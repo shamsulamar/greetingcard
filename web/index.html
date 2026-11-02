@@ -23,7 +23,7 @@
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="greatingcard">
+  <meta name="apple-mobile-web-app-title" content="Greeting Card">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
   <!-- Favicon -->
@@ -33,14 +33,42 @@
   <link rel="manifest" href="manifest.json">
 </head>
 <body>
-  <!--
-    You can customize the "flutter_bootstrap.js" script.
-    This is useful to provide a custom configuration to the Flutter loader
-    or to give the user feedback during the initialization process.
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(function (registrations) {
+        registrations.forEach(function (registration) {
+          registration.unregister();
+        });
+      });
+      if (window.caches) {
+        caches.keys().then(function (keys) {
+          keys.forEach(function (key) {
+            caches.delete(key);
+          });
+        });
+      }
+    }
 
-    For more details:
-    * https://docs.flutter.dev/platform-integration/web/initialization
-  -->
-  <script src="flutter_bootstrap.js" async></script>
+    // Native fetch, not Flutter JS-interop RequestInit. PUT from Dart was
+    // returning success without persisting notes.
+    window.greetingWallWrite = async function (url, body, token) {
+      var headers = {
+        'Accept': 'application/vnd.github+json',
+        'Content-Type': 'application/json',
+        'X-GitHub-Api-Version': '2022-11-28'
+      };
+      if (token) {
+        headers.Authorization = 'Bearer ' + token;
+      }
+      var response = await fetch(url, {
+        method: 'POST',
+        headers: headers,
+        cache: 'no-store',
+        body: body
+      });
+      return response.status;
+    };
+  </script>
+  <script src="flutter_bootstrap.js?v=notes1" async></script>
 </body>
 </html>

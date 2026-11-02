@@ -4,9 +4,16 @@ import 'package:flutter/services.dart';
 import '../greeting.dart';
 
 class SentPage extends StatelessWidget {
-  const SentPage({super.key, required this.payload});
+  const SentPage({
+    super.key,
+    required this.payload,
+    required this.emailed,
+    this.wallSaved = true,
+  });
 
   final String? payload;
+  final bool emailed;
+  final bool wallSaved;
 
   @override
   Widget build(BuildContext context) {
@@ -32,13 +39,24 @@ class SentPage extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(24, 16, 24, 48),
               children: [
                 Text(
-                  'Demo only: email is not sent from GitHub Pages.',
-                  style: theme.textTheme.bodyMedium,
+                  emailed
+                      ? 'We emailed this greeting to ${greeting.recipientEmail}.'
+                      : 'Email is not set up yet, so this greeting was not mailed to ${greeting.recipientEmail}.',
+                  style: theme.textTheme.bodyLarge,
                 ),
+                if (emailed && !wallSaved) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    'The email was sent, but this greeting could not be pinned to the public wall. Try refresh on Greetings sent today.',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.error,
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 8),
                 Text(
-                  'Share this link with ${greeting.recipientEmail}. They can open it and accept the greeting.',
-                  style: theme.textTheme.bodyLarge,
+                  'You can also share this link. They can open it and accept the greeting.',
+                  style: theme.textTheme.bodyMedium,
                 ),
                 const SizedBox(height: 24),
                 SelectableText(shareUrl, style: theme.textTheme.bodySmall),
@@ -58,7 +76,9 @@ class SentPage extends StatelessWidget {
                 const SizedBox(height: 12),
                 OutlinedButton(
                   onPressed: () {
-                    Navigator.of(context).pushNamed('/card?d=${greeting.toPayload()}');
+                    Navigator.of(
+                      context,
+                    ).pushNamed('/card?d=${greeting.toPayload()}');
                   },
                   child: const Text('Preview recipient view'),
                 ),
