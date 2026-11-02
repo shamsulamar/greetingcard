@@ -59,6 +59,10 @@
     {
       "t": "this message was sent from iPhone (old model).",
       "d": "2026-11-02"
+    },
+    {
+      "t": "this message was sent from iPhone (old model). tested on iPhone 14 plus.",
+      "d": "2026-11-02"
     }
   ]
 }
