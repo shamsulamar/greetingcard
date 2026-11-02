@@ -8,9 +8,9 @@ Today's send count and public note wall: https://shamsulamar.github.io/greetingc
 
 The old URL `https://shamsulamar.github.io/greatingcard/` redirects here so existing QR codes and email links still work.
 
-The wall shows greeting **text only**. Sender and recipient emails stay private. Stats reads `notes.json`. A GitHub Action appends a new note to that file after someone sends a greeting.
+The wall shows greeting **text only**. Sender and recipient emails stay private. Sending a greeting writes that text into `notes.json` immediately. The stats page only reads `notes.json`. Refresh re-reads the file.
 
-The live site queues a public note by triggering the **Append greeting note** Action. The write token is a GitHub secret injected only at Pages build time; it is not committed. The Action uses `GITHUB_TOKEN` to update `notes.json`.
+The write token is the repository secret `NOTE_DISPATCH_TOKEN`, injected only at Pages build time. It must be a fine-grained token for this repository with **Contents: Read and write**.
 
 ## Local demo
 

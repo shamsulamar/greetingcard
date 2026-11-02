@@ -47,7 +47,7 @@ class SentPage extends StatelessWidget {
                 if (emailed && !wallSaved) ...[
                   const SizedBox(height: 8),
                   Text(
-                    'The email was sent. The public wall may take a minute to show this greeting. Refresh Greetings sent today if it is not there yet.',
+                    'The email was sent, but this greeting could not be saved to notes.json.',
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: theme.colorScheme.error,
                     ),
