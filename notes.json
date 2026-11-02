@@ -55,6 +55,10 @@
     {
       "t": "Automatic watch is not powered by a battery or pulse. It is powered by a mechanism of gears and springs.",
       "d": "2026-11-02"
+    },
+    {
+      "t": "this message was sent from iPhone (old model).",
+      "d": "2026-11-02"
     }
   ]
 }
