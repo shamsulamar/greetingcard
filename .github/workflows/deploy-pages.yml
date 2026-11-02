@@ -1,0 +1,53 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: pages-deploy
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: live-pages
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+      - run: flutter pub get
+      - run: flutter build web --release --base-href /greetingcard/ --dart-define=NOTE_DISPATCH_TOKEN=${{ secrets.NOTE_DISPATCH_TOKEN }}
+      - name: Keep the live notes file
+        run: |
+          mkdir -p build/web
+          if [ -f live-pages/notes.json ]; then
+            cp live-pages/notes.json build/web/notes.json
+          elif [ -f web/notes.json ]; then
+            cp web/notes.json build/web/notes.json
+          fi
+          python3 - <<'PY'
+          from pathlib import Path
+          stamp = Path('.git/HEAD').read_text().strip()[-7:]
+          bootstrap = Path('build/web/flutter_bootstrap.js')
+          text = bootstrap.read_text()
+          text = text.replace('"main.dart.js"', f'"main.dart.js?v={stamp}"')
+          bootstrap.write_text(text)
+          index = Path('build/web/index.html')
+          index.write_text(index.read_text().replace('flutter_bootstrap.js"', f'flutter_bootstrap.js?v={stamp}"'))
+          PY
+      - uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: build/web
+          publish_branch: gh-pages
+          force_orphan: true
+          keep_files: false

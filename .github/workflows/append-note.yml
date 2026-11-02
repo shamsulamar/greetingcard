@@ -1,0 +1,61 @@
+name: Append greeting note
+
+on:
+  repository_dispatch:
+    types: [append_note]
+  workflow_dispatch:
+    inputs:
+      text:
+        description: Public greeting text
+        required: true
+        type: string
+      day:
+        description: Malaysia calendar day yyyy-mm-dd
+        required: true
+        type: string
+
+concurrency:
+  group: greeting-notes
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  append:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: pages
+      - name: Append note
+        env:
+          NOTE_TEXT: ${{ github.event.client_payload.t || github.event.inputs.text }}
+          NOTE_DAY: ${{ github.event.client_payload.d || github.event.inputs.day }}
+        run: |
+          NOTES_PATH=web/notes.json python3 .github/scripts/append_note.py
+          NOTES_PATH=pages/notes.json python3 .github/scripts/append_note.py
+      - name: Publish notes.json on GitHub Pages
+        run: |
+          git -C pages config user.name "github-actions[bot]"
+          git -C pages config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git -C pages add notes.json
+          if git -C pages diff --cached --quiet; then
+            echo "No live notes.json change"
+            exit 0
+          fi
+          git -C pages commit -m "Add a public greeting to notes.json."
+          git -C pages push origin HEAD:gh-pages
+      - name: Keep the source copy in sync
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add web/notes.json
+          if git diff --cached --quiet; then
+            echo "No source notes.json change"
+            exit 0
+          fi
+          git commit -m "Add a public greeting to notes.json."
+          git push origin HEAD:main
